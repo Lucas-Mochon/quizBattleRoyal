@@ -1,401 +1,207 @@
 # 🎮 Quiz Battle Royale
 
-Une application web **quiz multijoueur en temps réel**, façon Battle Royale, où les joueurs s'affrontent pour être le dernier en vie. Chaque question est chronométrée, et répondre trop lentement ou faux entraîne l'élimination.
+Multiplayer quiz game with real-time battles - Full-stack monorepo
 
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-brightgreen)
-![Next.js](https://img.shields.io/badge/Next.js-14-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)
-
----
-
-## 📝 Contexte
-
-Le projet a été conçu pour :
-
-- **Apprendre et démontrer** l'utilisation des WebSockets avec Spring Boot et Next.js
-- Gérer **des sessions multi-joueurs synchronisées en temps réel**
-- Créer une **expérience interactive et ludique**
-- Montrer des compétences avancées en **architecture microservices** et **frontend dynamique**
-
-Le concept s'inspire des jeux de quiz type Kahoot, mais avec une dimension **compétitive style Battle Royale**, élimination en direct et power-ups stratégiques.
-
----
-
-## 🎯 Fonctionnalités principales
-
-### ✅ Authentification
-
-- Création de compte / login avec JWT
-- Gestion des profils utilisateurs
-- Statistiques personnelles (parties jouées, victoires, score total)
-
-### 🎲 Lobby / Rooms
-
-- Création d'une session de quiz avec code unique
-- Rejoindre une session existante
-- Voir les joueurs connectés en temps réel
-- Le host peut démarrer la partie
-
-### 🎮 Gameplay Quiz
-
-- Questions chronométrées (5-10s par question)
-- Élimination instantanée si mauvaise réponse ou timeout
-- Timer synchronisé côté serveur (anti-triche)
-- Push des questions à tous les joueurs via WebSocket
-- Power-ups : "50/50", "+5s", "joker" (à venir)
-
-### 🏆 Leaderboard et notifications
-
-- Classement live mis à jour en temps réel
-- Notifications pour chaque élimination
-- Animations pour les gagnants / éliminés
-- Historique des parties
-
----
-
-## 🏗 Architecture
-
-### Backend (Spring Boot Microservices)
+## 📦 Project Structure
 
 ```
-┌─────────────────┐
-│   API Gateway   │ :8080
-│  (Spring Cloud) │
-└────────┬────────┘
-         │
-    ┌────┴────┬──────────┬──────────┐
-    │         │          │          │
-┌───▼──┐  ┌──▼───┐  ┌───▼───┐  ┌──▼────┐
-│ Auth │  │ Quiz │  │WebSocket│ │Eureka │
-│:8081 │  │:8082 │  │ :8083  │ │ :8761 │
-└──────┘  └──────┘  └────────┘ └───────┘
-    │         │          │
-┌───▼───┐ ┌──▼───┐  ┌──▼───┐
-│Postgres│ │Postgres│ │Redis │
-│ Auth  │ │ Quiz  │ │      │
-└───────┘ └───────┘ └──────┘
+quizBattleRoyal/
+├── frontend/                # Next.js 14 + TypeScript + Tailwind + shadcn/ui
+│   ├── src/
+│   │   ├── app/            # Next.js App Router
+│   │   ├── components/     # React components
+│   │   ├── contexts/       # React contexts (i18n)
+│   │   ├── locales/        # Translations (FR/EN)
+│   │   └── lib/            # Utilities
+│   └── package.json
+│
+├── backend/                 # Spring Boot Microservices
+│   ├── eureka-server/      # Service Discovery (port 8761)
+│   ├── api-gateway/        # API Gateway (port 8080)
+│   ├── auth-service/       # Authentication (port 8081)
+│   ├── quiz-service/       # Quiz management (port 8082)
+│   ├── websocket-service/  # Real-time WebSocket (port 8083)
+│   ├── docker-compose.yml  # Full stack orchestration
+│   └── docker-compose.dev.yml  # PostgreSQL only
+│
+├── rebuild-service.ps1     # Rebuild specific service
+├── watch-and-rebuild.ps1   # Auto-rebuild on code change
+└── .gitignore              # Global ignore rules
 ```
 
-**Microservices :**
+## 🚀 Quick Start
 
-- **Eureka Server** (8761) - Service Discovery
-- **API Gateway** (8080) - Point d'entrée unique, routage, authentification JWT
-- **Auth Service** (8081) - Authentification, gestion utilisateurs (PostgreSQL)
-- **Quiz Service** (8082) - Questions, catégories, statistiques (PostgreSQL)
-- **WebSocket Service** (8083) - Communication temps réel, rooms, gameplay (Redis)
+### Prerequisites
 
-### Frontend (Next.js)
+- Node.js 18+
+- Java 17+
+- Maven 3.6+
+- Docker Desktop
+- PostgreSQL (optional, Docker provides one)
 
-```
-frontend/
-├── src/
-│   ├── app/              # Pages Next.js (App Router)
-│   ├── components/       # Composants React + shadcn/ui
-│   ├── contexts/         # Context providers (i18n, Auth, WebSocket)
-│   ├── lib/              # Utilitaires, i18n config
-│   └── locales/          # Traductions (FR/EN)
+### 1️⃣ Start Database
+
+```powershell
+docker compose -f backend/docker-compose.dev.yml up -d
 ```
 
-**Technologies :**
+PostgreSQL runs on **port 5433** (not 5432 to avoid conflicts)
 
-- Next.js 14 avec App Router
-- TypeScript
-- Tailwind CSS
-- shadcn/ui pour les composants
-- react-i18next pour l'internationalisation
-- STOMP over WebSocket pour le temps réel
+### 2️⃣ Start Frontend
 
----
-
-## 🚀 Installation
-
-### Prérequis
-
-- **Java 17+**
-- **Maven 3.6+**
-- **Node.js 18+**
-- **Docker & Docker Compose**
-- **PostgreSQL 15+** (ou via Docker)
-- **Redis 7+** (ou via Docker)
-
-### Installation complète avec Docker
-
-```bash
-# 1. Cloner le repo
-git clone <repo-url>
-cd quizBattleRoyal
-
-# 2. Lancer le backend (microservices + DB)
-cd backend
-docker-compose up -d
-
-# 3. Lancer le frontend
-cd ../frontend
-npm install
-npm run dev
-```
-
-**URLs après installation :**
-
-- Frontend : http://localhost:3000
-- API Gateway : http://localhost:8080
-- Eureka Dashboard : http://localhost:8761
-
-### Installation manuelle (développement)
-
-**Backend :**
-
-```bash
-cd backend
-
-# Démarrer les bases de données
-docker run -d -p 5432:5432 -e POSTGRES_DB=quiz_auth -e POSTGRES_PASSWORD=postgres postgres:15-alpine
-docker run -d -p 5433:5432 -e POSTGRES_DB=quiz_data -e POSTGRES_PASSWORD=postgres postgres:15-alpine
-docker run -d -p 6379:6379 redis:7-alpine
-
-# Compiler chaque service (dans l'ordre)
-cd eureka-server && mvn clean package && cd ..
-cd api-gateway && mvn clean package && cd ..
-cd auth-service && mvn clean package && cd ..
-cd quiz-service && mvn clean package && cd ..
-cd websocket-service && mvn clean package && cd ..
-
-# Démarrer les services (terminaux séparés)
-cd eureka-server && mvn spring-boot:run
-cd api-gateway && mvn spring-boot:run
-cd auth-service && mvn spring-boot:run
-cd quiz-service && mvn spring-boot:run
-cd websocket-service && mvn spring-boot:run
-```
-
-**Frontend :**
-
-```bash
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
----
+Frontend: http://localhost:3000
 
-## 📡 API Endpoints
+### 3️⃣ Start Backend Services
 
-### Auth Service
-
-```bash
-# Inscription
-POST /api/auth/register
-{
-  "username": "player1",
-  "email": "player1@example.com",
-  "password": "password123",
-  "displayName": "Player One"
-}
-
-# Connexion
-POST /api/auth/login
-{
-  "username": "player1",
-  "password": "password123"
-}
+```powershell
+cd backend
+./build-all.ps1                    # Build all JARs
+docker compose up -d --build       # Start all services
 ```
 
-### Quiz Service
+## 🛠️ Development Workflows
 
-```bash
-# Questions aléatoires
-GET /api/quiz/questions/random?count=10
+### Auto-Rebuild on Save
 
-# Question spécifique
-GET /api/quiz/questions/{id}
+Watch a service and automatically rebuild when files change:
 
-# Valider une réponse
-POST /api/quiz/questions/{questionId}/validate
-{
-  "answerId": 123
-}
+```powershell
+./watch-and-rebuild.ps1 auth-service
 ```
 
-### WebSocket Service
+### Manual Rebuild
 
-**Connexion :** `ws://localhost:8080/api/ws/ws`
+Rebuild a specific service:
 
-```javascript
-// Rejoindre une room
-stompClient.send(
-  "/app/room.join",
-  {},
-  JSON.stringify({
-    roomCode: "ABC123",
-    userId: 1,
-    username: "player1",
-    displayName: "Player One",
-  }),
-);
-
-// Soumettre une réponse
-stompClient.send(
-  "/app/game.answer",
-  {},
-  JSON.stringify({
-    roomCode: "ABC123",
-    userId: 1,
-    answerId: "answer-1",
-    timestamp: Date.now(),
-  }),
-);
-
-// Démarrer la partie (host only)
-stompClient.send("/app/game.start", {}, "ABC123");
+```powershell
+./rebuild-service.ps1 quiz-service
 ```
 
-**Topics de souscription :**
+### View Logs
 
-- `/topic/room.{roomCode}` - Événements de la room
-- `/topic/leaderboard.{roomCode}` - Mises à jour du classement
+```powershell
+docker logs quiz-auth-service -f
+docker logs quiz-quiz-service -f
+docker logs quiz-websocket-service -f
+```
 
----
+## 🌐 Services & Ports
 
-## 🛠 Stack Technique
+| Service      | Port | Description             | URL                   |
+| ------------ | ---- | ----------------------- | --------------------- |
+| Frontend     | 3000 | Next.js app             | http://localhost:3000 |
+| API Gateway  | 8080 | Single entry point      | http://localhost:8080 |
+| Auth Service | 8081 | Authentication          | http://localhost:8081 |
+| Quiz Service | 8082 | Quiz management         | http://localhost:8082 |
+| WebSocket    | 8083 | Real-time communication | ws://localhost:8083   |
+| Eureka       | 8761 | Service discovery       | http://localhost:8761 |
+| PostgreSQL   | 5433 | Database                | localhost:5433        |
 
-### Backend
+## 🗄️ Database
 
-- **Spring Boot 3.3.0**
-- Spring Cloud Gateway
-- Spring Cloud Netflix Eureka
-- Spring WebSocket + STOMP
-- Spring Security + JWT
-- Spring Data JPA
-- PostgreSQL 15
-- Redis 7
-- Lombok
+**Connection:**
+
+- Host: `localhost:5433`
+- Database: `quizbattle`
+- User: `postgres`
+- Password: `postgres`
+
+## 🧪 Tech Stack
 
 ### Frontend
 
-- **Next.js 14** (App Router)
-- **TypeScript**
-- **Tailwind CSS**
-- **shadcn/ui**
-- react-i18next (i18n FR/EN)
-- STOMP.js (WebSocket)
+- **Framework:** Next.js 14 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Components:** shadcn/ui
+- **i18n:** react-i18next (FR/EN)
 
----
+### Backend
 
-## 📊 Base de données
+- **Framework:** Spring Boot 3.3.0
+- **Discovery:** Netflix Eureka
+- **Gateway:** Spring Cloud Gateway
+- **Database:** PostgreSQL 15
+- **Build:** Maven
+- **Deployment:** Docker Compose
 
-### Auth Service (PostgreSQL)
+## 📝 Git Workflow
 
-```sql
-users
-- id, username, email, password
-- display_name, avatar_url
-- total_games, total_wins, total_score
-- is_active, created_at, updated_at
+### Initial Setup (Already Done ✅)
+
+```powershell
+git init
+git add .
+git commit -m "🎉 Initial commit"
 ```
 
-### Quiz Service (PostgreSQL)
+### Connect to GitHub
 
-```sql
-categories
-- id, name, description, icon_url, is_active
-
-questions
-- id, question_text, difficulty_level
-- time_limit, points, category_id
-- is_active, created_at, updated_at
-
-answers
-- id, answer_text, is_correct, question_id
-
-game_sessions
-- id, room_code, host_user_id, status
-- winner_user_id, total_players, total_questions
-- started_at, finished_at
-
-player_stats
-- id, user_id, session_id
-- final_score, correct_answers, wrong_answers
-- rank_position, is_winner
+```powershell
+git remote add origin https://github.com/YOUR_USERNAME/quiz-battle-royale.git
+git branch -M main
+git push -u origin main
 ```
 
----
+### Regular Commits
 
-## 🔐 Sécurité
-
-- **JWT** pour l'authentification
-- Tokens validés par l'API Gateway
-- WebSockets sécurisés avec JWT dans le header `Authorization`
-- Passwords hashés avec BCrypt
-- CORS configuré pour le frontend (localhost:3000)
-
----
-
-## 🌐 Internationalisation
-
-Le frontend supporte **Français** et **Anglais** via react-i18next avec Context Provider.
-
-```typescript
-import { useTranslation } from 'react-i18next';
-
-const { t } = useTranslation();
-<h1>{t('common.welcome')}</h1>
+```powershell
+git add .
+git commit -m "✨ Add new feature"
+git push
 ```
 
-Fichiers de traduction : `frontend/src/locales/fr.json` et `en.json`
+## 🔧 Scripts Reference
+
+### Backend Scripts
+
+- `backend/build-all.ps1` - Build all services with Maven
+- `backend/docker-compose.yml` - Full stack (DB + all services)
+- `backend/docker-compose.dev.yml` - PostgreSQL only
+
+### Root Scripts
+
+- `rebuild-service.ps1 <service>` - Rebuild one service
+- `watch-and-rebuild.ps1 <service>` - Auto-rebuild on change
+
+### Frontend Scripts
+
+- `npm run dev` - Development server
+- `npm run build` - Production build
+- `npm run start` - Production server
+
+## 📂 .gitignore
+
+The monorepo ignores:
+
+- ✅ `.env*` files (all environments)
+- ✅ `node_modules/`
+- ✅ `target/` (Maven builds)
+- ✅ `.next/` (Next.js build)
+- ✅ IDE files (`.vscode/`, `.idea/`)
+- ✅ Docker overrides
+- ✅ Logs and temp files
+
+## 🎯 Next Steps
+
+Since the backend is empty shells, implement:
+
+1. **Auth Service:** User registration, login, JWT tokens
+2. **Quiz Service:** Quiz CRUD, questions, leaderboards
+3. **WebSocket Service:** Real-time game lobbies, battle logic
+4. **Frontend:** Connect to APIs, game UI
+
+## 📚 Documentation
+
+- [Backend README](backend/README.md) - Microservices architecture details
+- [Frontend README](frontend/README.md) - Next.js setup and structure
 
 ---
 
-## 🎨 Interface
-
-Composants UI avec **shadcn/ui** :
-
-- Buttons, Cards, Dialogs
-- Form inputs avec validation
-- Toasts pour notifications
-- Animations CSS pour timer et éliminations
-
----
-
-## 📅 Roadmap
-
-- [x] Architecture microservices
-- [x] Auth avec JWT
-- [x] WebSocket + STOMP
-- [x] Rooms et lobby
-- [x] Questions et réponses
-- [x] Leaderboard en temps réel
-- [ ] Power-ups (50/50, +5s, joker)
-- [ ] Mode spectateur
-- [ ] Chat limité / emojis
-- [ ] Thèmes de quiz personnalisés
-- [ ] Tournois multi-sessions
-- [ ] Export résultats PDF
-
----
-
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! Ouvrez une issue ou une pull request.
-
----
-
-## 📄 License
-
-MIT
-
----
-
-## 👨‍💻 Auteur
-
-Projet réalisé pour démontrer des compétences en :
-
-- Architecture microservices
-- WebSocket temps réel
-- Spring Boot + Next.js
-- Sécurité JWT
-- UI/UX interactive
-
----
-
-**Bon jeu ! 🎮🏆**
+**Ready to code!** 🚀
