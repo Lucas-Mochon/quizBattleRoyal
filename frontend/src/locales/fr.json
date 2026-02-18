@@ -1,14 +1,10 @@
 {
-  "common": {
-    "welcome": "Bienvenue",
-    "loading": "Chargement...",
-    "error": "Erreur",
-    "submit": "Soumettre",
-    "cancel": "Annuler"
-  },
   "navigation": {
     "home": "Accueil",
-    "about": "À propos",
-    "contact": "Contact"
+    "discover": "Découvrir",
+    "myQuiz": "Mes quiz",
+    "history": "Historique",
+    "login": "Se connecter",
+    "register": "S'inscrire"
   }
 }

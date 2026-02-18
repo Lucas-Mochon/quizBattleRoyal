@@ -1,14 +1,10 @@
 {
-  "common": {
-    "welcome": "Welcome",
-    "loading": "Loading...",
-    "error": "Error",
-    "submit": "Submit",
-    "cancel": "Cancel"
-  },
   "navigation": {
     "home": "Home",
-    "about": "About",
-    "contact": "Contact"
+    "discover": "Discover",
+    "myQuiz": "My quiz",
+    "history": "History",
+    "login": "Login",
+    "register": "Register"
   }
 }

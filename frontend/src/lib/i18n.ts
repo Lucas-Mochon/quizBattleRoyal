@@ -7,11 +7,11 @@ import fr from '@/locales/fr.json';
 
 const resources = {
   en: {
-    translation: en
+    translation: en,
   },
   fr: {
-    translation: fr
-  }
+    translation: fr,
+  },
 };
 
 i18n
@@ -23,8 +23,8 @@ i18n
     lng: 'fr',
     debug: false,
     interpolation: {
-      escapeValue: false
-    }
+      escapeValue: false,
+    },
   });
 
 export default i18n;
