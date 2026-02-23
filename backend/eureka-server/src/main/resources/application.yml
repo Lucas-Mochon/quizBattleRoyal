@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: eureka-server
+  cloud:
+    compatibility-verifier:
+      enabled: false
 
 eureka:
   client:

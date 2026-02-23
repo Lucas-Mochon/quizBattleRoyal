@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: auth-service
+  cloud:
+    compatibility-verifier:
+      enabled: false
 
   datasource:
     url: jdbc:postgresql://postgres:5432/quizbattle
