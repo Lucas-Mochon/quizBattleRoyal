@@ -6,17 +6,14 @@ spring:
     name: eureka-server
 
 eureka:
-  instance:
-    hostname: localhost
   client:
     register-with-eureka: false
     fetch-registry: false
-    service-url:
-      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
   server:
     enable-self-preservation: false
+    expected-client-renewal-interval-seconds: 30
 
 logging:
   level:
-    com.netflix.eureka: OFF
-    com.netflix.discovery: OFF
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO

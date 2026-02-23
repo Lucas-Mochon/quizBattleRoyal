@@ -1,6 +1,8 @@
+name: quiz-battle-backend
+
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: quiz-postgres
     environment:
       POSTGRES_DB: quizbattle
@@ -12,6 +14,11 @@ services:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - quiz-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   eureka-server:
     build:
@@ -22,61 +29,23 @@ services:
       - "8761:8761"
     networks:
       - quiz-network
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--spider",
+          "-q",
+          "http://localhost:8761/actuator/health",
+        ]
       interval: 10s
       timeout: 5s
-      retries: 5
-
-  auth-service:
-    build:
-      context: ./auth-service
-      dockerfile: Dockerfile
-    container_name: quiz-auth-service
-    ports:
-      - "8081:8081"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/quizbattle
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-    depends_on:
-      - postgres
-      - eureka-server
-    networks:
-      - quiz-network
-
-  quiz-service:
-    build:
-      context: ./quiz-service
-      dockerfile: Dockerfile
-    container_name: quiz-quiz-service
-    ports:
-      - "8082:8082"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/quizbattle
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-    depends_on:
-      - postgres
-      - eureka-server
-    networks:
-      - quiz-network
-
-  websocket-service:
-    build:
-      context: ./websocket-service
-      dockerfile: Dockerfile
-    container_name: quiz-websocket-service
-    ports:
-      - "8083:8083"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-    depends_on:
-      - eureka-server
-    networks:
-      - quiz-network
+      retries: 10
 
   api-gateway:
     build:
@@ -85,18 +54,86 @@ services:
     container_name: quiz-api-gateway
     ports:
       - "8080:8080"
+    networks:
+      - quiz-network
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
     depends_on:
-      - eureka-server
-      - auth-service
-      - quiz-service
-      - websocket-service
+      eureka-server:
+        condition: service_healthy
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: quiz-auth-service
+    ports:
+      - "8081:8081"
     networks:
       - quiz-network
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/quizbattle
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+
+  quiz-service:
+    build:
+      context: ./quiz-service
+      dockerfile: Dockerfile
+    container_name: quiz-quiz-service
+    ports:
+      - "8082:8082"
+    networks:
+      - quiz-network
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/quizbattle
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+
+  websocket-service:
+    build:
+      context: ./websocket-service
+      dockerfile: Dockerfile
+    container_name: quiz-websocket-service
+    ports:
+      - "8083:8083"
+    networks:
+      - quiz-network
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/quizbattle
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
 
 volumes:
   postgres-data:
+    driver: local
 
 networks:
   quiz-network:
