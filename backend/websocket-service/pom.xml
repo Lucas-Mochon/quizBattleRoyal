@@ -13,7 +13,13 @@
 
     <artifactId>websocket-service</artifactId>
     <name>WebSocket Service</name>
-    <description>Real-time WebSocket Service for User Stats and Game Events</description>
+
+    <description>WebSocket Service for Quiz Battle Royale</description>
+    
+    <properties>
+        <java.version>21</java.version>
+        <spring-cloud.version>2023.0.2</spring-cloud.version>
+    </properties>
 
     <dependencies>
         <dependency>
