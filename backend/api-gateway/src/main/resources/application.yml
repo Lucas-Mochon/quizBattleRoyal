@@ -1,13 +1,15 @@
-server:
-  port: 8080
-
 spring:
-  application:
-    name: api-gateway
   cloud:
     compatibility-verifier:
       enabled: false
     gateway:
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            "[redis-rate-limiter.replenishRate]": 100
+            "[redis-rate-limiter.burstCapacity]": 200
+        - AddRequestHeader=X-Request-ID,${random.uuid}
+
       discovery:
         locator:
           enabled: true
@@ -41,6 +43,31 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
 
+jwt:
+  secret: ${JWT_SECRET}
+
+server:
+  servlet:
+    context-path: /api/gateway
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
 logging:
   level:
-    org.springframework.cloud.gateway: INFO
+    "[org.springframework.cloud.gateway]": INFO
+    "[org.springframework.security]": DEBUG
+    "[org.springframework.web]": INFO
+    "[com.quizbattleroyale]": DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
